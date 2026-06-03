@@ -1,83 +1,182 @@
-﻿# Super KAM（Knowledge-Augmented Memory）
+# KK Nexus — 多员工知识系统
 
-> 项目根目录：`C:\Users\hexk\OneDrive\文档\New project 6`
-> 更新日期：2026-05-15
+> **KK Nexus** 是一个基于 Codex 的多员工（Multi-Agent）知识工作系统。
+> 每个员工是一个独立的 AI skill，配备专属知识库（vault），
+> 通过统一的工具链完成知识的导入、蒸馏、索引和检索。
 
 ---
 
-## 项目说明
+## 快速开始
 
-为每个 Codex skill 配备专属知识库（vault），实现领域知识的摄取、蒸馏、检索和维护。
+### 前置要求
 
-## 当前状态
+- Python >= 3.10
+- Git
+- 磁盘空间 >= 3GB
+- 内存 >= 8GB
 
-| 指标 | 数值 |
-|------|------|
-| 适配 skill | 1（equity-incentive） |
-| Ontology vault | 2（equity-incentive + 张江高科） |
-| knowledge 节点 | 4 |
-| raw 文件 | 12（3 已蒸馏, 9 待蒸馏） |
-| 工具脚本 | 7 |
+### 安装
 
-## 核心文件
-
-| 文件 | 说明 |
-|------|------|
-| `~/.codex/AGENTS.md` | **全局配置** — vault 协议 + 命名规范 + schema + 检索协议 + 蒸馏流程 |
-| `AGENTS.md` | 项目级规则 |
-| `HANDOVER.md` | 交接文档 |
-| `KAM-IMPLEMENTATION.md` | 实施跟踪表 |
-| `scripts/bootstrap_vault.py` | 创建 vault 8 目录 + ontology 注册 |
-| `scripts/enhance_skillmd.py` | SKILL.md vault 上下文注入/卸载/更新（自动备份） |
-| `scripts/vault_ingest.py` | 文件转化导入（markitdown + 去重 + 归档） |
-| `scripts/build_index.py` | 扫描 vault 生成 knowledge/index.md |
-| `scripts/validate_vault.py` | YAML schema + 命名规范校验 |
-| `scripts/health_check.py` | 未蒸馏检测 + 过期检测 + 重复标签检测 |
-| `scripts/query_ontology.py` | 跨 vault 查询（按 domain/company） |
-| `templates/skill-header.md` | vault 注入块模板（含蒸馏 SOP + 使用追踪） |
-
-## 常用命令
-
-```bash
-# 为 skill 创建 vault
-python scripts/bootstrap_vault.py ~/.codex/skills/<skill-name>
-
-# 增强 SKILL.md
-python scripts/enhance_skillmd.py ~/.codex/skills/<skill-name>
-
-# 导入文件
-python scripts/vault_ingest.py 文件.pdf --vault <vault-path> --source user
-
-# 重建索引
-python scripts/build_index.py <vault-path>
-
-# 校验 vault
-python scripts/validate_vault.py <vault-path>
-
-# 健康检查
-python scripts/health_check.py <vault-path>
-
-# 查询 ontology
-python scripts/query_ontology.py --type Vault --domain equity-incentive
+```powershell
+git clone git@github.com:ConnorKK-claw/kk-nexus.git
+cd kk-nexus
+pip install txtai sentence-transformers
 ```
 
-## 定期维护
+> Embedding 模型 `BAAI/bge-small-zh-v1.5`（512维，30MB）会在首次语义索引时自动下载。
 
-建议每周运行一次健康检查：
+### 验证安装
 
-```bash
-python scripts/health_check.py ~/.codex/skills/equity-incentive/vault
+```powershell
+python scripts/txtai_health.py
 ```
 
-或设置 Windows Task Scheduler 定时执行。
+---
 
-## 关联外部 vault
+## 架构
 
-- equity-incentive: `~/.codex/skills/equity-incentive/vault`
-- 张江高科: `C:\Users\hexk\OneDrive\Desktop\张江高科\database\`（旧 schema，只读）
+```
+第4层  集成层  — MCP / Obsidian / Ontology / txtai
+第3层  员工层  — 5 个 skill 化员工（001~005）
+第2层  知识库  — vault 体系（raw / knowledge / cases / templates）
+第1层  工具链  — 36 个 Python 自动化脚本
+```
 
-## 待完成
+### 5 员工体系
 
-- [ ] Obsidian CLI 启用（设置 → 常规 → 启用命令行接口）
-- [ ] 剩余 9 个 raw 文件蒸馏
-- [ ] 更多 skill 适配（tax-compliance-expert, a-share-research 等）
+| 编号 | 名称 | Domain | 职责 |
+|:---:|------|:------:|------|
+| 001 | equity-incentive | ei | 股权激励方案设计与法规合规 |
+| 002 | tax-compliance-expert | tax | 财税合规、发票、记账、审计 |
+| 003 | weekly-report | wr | 周报生成（证券/公司） |
+| 004 | hk-ipo | hk | 港股 IPO 全流程 |
+| 005 | financial-analysis | fa | 宏观经济、货币政策、资产配置 |
+
+每个员工 = 一个独立的 Codex skill，位于 `~/.codex/skills/<name>/`，包含：
+- `SKILL.md` — 能力定义
+- `SOUL.md` — 身份定义
+- `TOOLS.md` — 工具清单
+- `vault/` — 专属知识库
+
+---
+
+## 核心能力
+
+### 知识处理全链路
+
+```
+导入 -> 验证 -> 语义索引 -> 蒸馏 -> 知识索引 -> 作者索引 -> 统一索引 -> 健康检查
+```
+
+| 步骤 | 命令 |
+|------|------|
+| 导入 | 手动放入 vault/raw/user/ 或运行 vault_ingest.py |
+| 验证 | `python scripts/validate_vault.py <vault-path>` |
+| 语义索引 | `python scripts/txtai_index.py --full` |
+| 知识索引 | `python scripts/build_index.py <vault-path>` |
+| 统一索引 | `python scripts/unified_index.py --refresh` |
+| 健康检查 | `python scripts/weekly_vault_health.py` |
+
+### 语义搜索
+
+```powershell
+# 搜索知识库
+python scripts/txtai_query.py "关键词" --limit 5
+
+# 启动 MCP 服务（供 Codex 直接调用）
+python scripts/txtai_mcp.py
+```
+
+### 跨 vault 检索
+
+检索优先级链（full-access 模式下）：
+```
+① txtai 语义搜索（向量 + RAG）
+② UNIFIED_INDEX.md（O(1) 索引查询）
+③ obsidian-cli --fuzzy（分词 + 拼音模糊）
+④ vault/knowledge/index.md
+⑤ Select-String 纯文本降级
+```
+
+---
+
+## 在新 PC 上搭建
+
+详细搭建说明书请阅读 **[KK-NEXUS-SKILL.md](./KK-NEXUS-SKILL.md)**，包含 10 个章节的完整指引。
+
+快速流程：
+
+```powershell
+# 1. 克隆
+git clone git@github.com:ConnorKK-claw/kk-nexus.git
+cd kk-nexus
+
+# 2. 安装依赖
+pip install txtai sentence-transformers
+
+# 3. 重建语义索引
+python scripts/txtai_index.py --full
+
+# 4. 刷新统一索引
+python scripts/unified_index.py --refresh
+
+# 5. 健康检查
+python scripts/weekly_vault_health.py
+python scripts/txtai_health.py
+```
+
+---
+
+## 项目结构
+
+```
+kk-nexus/
+├── AGENTS.md                     # 全局规则与协议
+├── KK-NEXUS-SKILL.md             # 完整搭建说明书（kk-nexus skill）
+├── KK_NEXUS_SETUP.md             # 安装指引（精简版）
+├── ONBOARDING.md                 # 入职指南
+├── HANDOVER.md                   # 交接文档
+├── SOUL.md / TOOLS.md / USER.md  # 根配置
+├── scripts/                      # 36 个自动化脚本
+├── templates/                    # 模板（vault 骨架、SKILL 注入块等）
+├── backup/                       # 备份（ontology.jsonl 等）
+└── .gitignore
+```
+
+---
+
+## 协议体系
+
+KK Nexus 的核心运行协议定义在 `AGENTS.md` 中，包括：
+
+- **WAL 协议** — 每次会话结束前必须执行的收尾流程
+- **检索优先级协议** — 从语义搜索到纯文本降级的检索链
+- **原始素材处理协议** — 导入到健康检查的 8 步全链路
+- **标签规范** — 禁止 `未知` / `[object Object]` 等格式
+- **文件命名规范** — vault/ 下各目录的命名规则
+
+---
+
+## 维护
+
+### 定期任务
+
+| 频率 | 任务 |
+|:---:|------|
+| 每周 | `python scripts/weekly_vault_health.py` |
+| 每次变更 | `python scripts/unified_index.py --refresh` |
+| 每次会话结束 | 执行 WAL 协议（SESSION-STATE + memory + working-buffer） |
+| 按需 | `python scripts/txtai_index.py --full`（重建语义索引） |
+
+### 回退
+
+```powershell
+git log --oneline          # 查看历史
+git checkout <commit-hash> # 回退到某个快照
+```
+
+---
+
+## 许可证
+
+私有项目 © ConnorKK
