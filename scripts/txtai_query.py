@@ -12,7 +12,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 def load_index():
     from txtai import Embeddings
-    index_dir = Path.home() / ".txtai_index"
+    index_dir = config.TEXTAI_INDEX_DIR
     if not (index_dir / "config.json").exists():
         print(f"ERROR: Index not found at {index_dir}. Run: python scripts/txtai_index.py --full")
         sys.exit(1)
@@ -48,9 +48,10 @@ def cmd_ask(args):
         f"[{meta.get(d['id'], {}).get('domain', '?')}] {meta.get(d['id'], {}).get('title', d['id'])}\n{d.get('text', '')[:500]}"
         for d in results[:5]
     )
-    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    api_key = config.DEEPSEEK_API_KEY
     if api_key and not args.no_rag:
         import httpx
+from scripts import config
 
         prompt = f"""根据以下检索到的知识回答用户问题：
 
@@ -81,7 +82,7 @@ def cmd_ask(args):
         cmd_search(args)
 
 def cmd_stats(args):
-    index_dir = Path.home() / ".txtai_index"
+    index_dir = config.TEXTAI_INDEX_DIR
     stats_file = index_dir / "stats.json"
     if stats_file.exists():
         stats = json.loads(stats_file.read_text(encoding="utf-8"))

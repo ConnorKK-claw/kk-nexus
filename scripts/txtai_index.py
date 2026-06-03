@@ -11,9 +11,10 @@ from scripts.txtai_utils import discover_md_files, read_md, build_index_text
 
 def build_index(model="BAAI/bge-small-zh-v1.5", full=False, output_dir=None):
     if output_dir is None:
-        output_dir = Path.home() / ".txtai_index"
+        output_dir = config.TEXTAI_INDEX_DIR
 
     from txtai import Embeddings
+from scripts import config
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 

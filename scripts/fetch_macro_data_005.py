@@ -16,11 +16,12 @@ import os, sys, textwrap, time, json
 from datetime import datetime
 
 import pandas as pd
+from scripts import config
 
 # ============================================================
 # 配置
 # ============================================================
-VAULT_KNOWLEDGE_DIR = Path.home() / ".codex" / "skills" / "financial-analysis" / "vault" / "knowledge"
+VAULT_KNOWLEDGE_DIR = config.FA_VAULT_KNOWLEDGE
 AUTHOR = "AKShare 宏观数据管道"
 DOMAIN = "financial-analysis"
 

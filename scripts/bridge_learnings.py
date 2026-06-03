@@ -1,3 +1,7 @@
+"""DEPRECATED — 请使用 consolidate_learnings.py 替代。
+保留仅用于参考，不再维护。
+"""
+
 #!/usr/bin/env python3
 """bridge_learnings.py - Bridge .learnings/ entries into KAM vault journals."""
 import argparse, hashlib, json, re, sys

@@ -8,7 +8,7 @@ from datetime import datetime
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 def check_health():
-    index_dir = Path.home() / ".txtai_index"
+    index_dir = config.TEXTAI_INDEX_DIR
     issues = []
     
     # 1. Check index directory exists
@@ -54,6 +54,7 @@ def check_health():
     # 4. Try to load and query
     try:
         from txtai import Embeddings
+from scripts import config
         embeddings = Embeddings()
         embeddings.load(str(index_dir))
         count = embeddings.count()

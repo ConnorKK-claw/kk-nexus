@@ -17,7 +17,7 @@ def get_embeddings():
     if _embeddings is not None:
         return _embeddings, _metadata
     from txtai import Embeddings
-    index_dir = Path.home() / ".txtai_index"
+    index_dir = config.TEXTAI_INDEX_DIR
     if not (index_dir / "config.json").exists():
         raise RuntimeError(f"Index not found at {index_dir}. Run: python scripts/txtai_index.py --full")
     _embeddings = Embeddings()
@@ -55,7 +55,7 @@ def handle_ask(query, domain=None):
     gap = search_with_gap(results, query)
     
     # DeepSeek synthesis
-    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    api_key = config.DEEPSEEK_API_KEY
     if api_key:
         try:
             import httpx
@@ -87,7 +87,7 @@ def handle_ask(query, domain=None):
     return {"answer": answer, "sources": results[:5], "gap_analysis": gap, "total_results": len(results)}
 
 def handle_stats():
-    index_dir = Path.home() / ".txtai_index"
+    index_dir = config.TEXTAI_INDEX_DIR
     if not index_dir.exists():
         return {"status": "not_found", "path": str(index_dir)}
     stats_file = index_dir / "stats.json"
@@ -205,6 +205,7 @@ if __name__ == "__main__":
     # If --test passed, run a single test query
     if "--test" in sys.argv:
         import json
+from scripts import config
         q = sys.argv[sys.argv.index("--test") + 1] if "--test" in sys.argv and len(sys.argv) > sys.argv.index("--test") + 1 else "测试"
         print(json.dumps(handle_search(q, 5), ensure_ascii=False, indent=2))
     else:
