@@ -43,3 +43,15 @@ scripts/bun.lock
 
 # Vault 内容（员工数据不固化）
 .codex/
+
+
+# 个人数据（取消追踪，不入仓库）
+.gbrain-src/
+.learnings/
+memory/
+_pdf_cache/
+_upgrade_sk/
+.bridged_cache.json
+.unified_index_cache.json
+_szse_format42_full.md
+14家上海国资案例数据.xlsx
