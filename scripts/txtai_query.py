@@ -12,7 +12,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 def load_index():
     from txtai import Embeddings
-    index_dir = Path(r"C:\Users\hexk\.txtai_index")
+    index_dir = Path.home() / ".txtai_index"
     if not (index_dir / "config.json").exists():
         print(f"ERROR: Index not found at {index_dir}. Run: python scripts/txtai_index.py --full")
         sys.exit(1)
@@ -81,7 +81,7 @@ def cmd_ask(args):
         cmd_search(args)
 
 def cmd_stats(args):
-    index_dir = Path(r"C:\Users\hexk\.txtai_index")
+    index_dir = Path.home() / ".txtai_index"
     stats_file = index_dir / "stats.json"
     if stats_file.exists():
         stats = json.loads(stats_file.read_text(encoding="utf-8"))

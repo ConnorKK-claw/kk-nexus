@@ -1,3 +1,4 @@
+from pathlib import Path
 ﻿"""
 weekly_vault_health.py - 每周 vault 健康检查
 
@@ -12,7 +13,7 @@ weekly_vault_health.py - 每周 vault 健康检查
 import os, re, sys
 from collections import defaultdict
 
-VAULT = r"C:\Users\hexk\.codex\skills\financial-analysis\vault\raw\user"
+VAULT = Path.home() / ".codex" / "skills" / "financial-analysis" / "vault" / "raw" / "user"
 REPORT_FILE = os.path.join(os.path.dirname(VAULT), "..", "..", "health-report.md")
 
 def check_double_bom():

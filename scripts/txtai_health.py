@@ -8,7 +8,7 @@ from datetime import datetime
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 def check_health():
-    index_dir = Path(r"C:\Users\hexk\.txtai_index")
+    index_dir = Path.home() / ".txtai_index"
     issues = []
     
     # 1. Check index directory exists

@@ -20,7 +20,7 @@ import pandas as pd
 # ============================================================
 # 配置
 # ============================================================
-VAULT_KNOWLEDGE_DIR = r"C:\Users\hexk\.codex\skills\financial-analysis\vault\knowledge"
+VAULT_KNOWLEDGE_DIR = Path.home() / ".codex" / "skills" / "financial-analysis" / "vault" / "knowledge"
 AUTHOR = "AKShare 宏观数据管道"
 DOMAIN = "financial-analysis"
 

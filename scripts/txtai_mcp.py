@@ -17,7 +17,7 @@ def get_embeddings():
     if _embeddings is not None:
         return _embeddings, _metadata
     from txtai import Embeddings
-    index_dir = Path(r"C:\Users\hexk\.txtai_index")
+    index_dir = Path.home() / ".txtai_index"
     if not (index_dir / "config.json").exists():
         raise RuntimeError(f"Index not found at {index_dir}. Run: python scripts/txtai_index.py --full")
     _embeddings = Embeddings()
@@ -87,7 +87,7 @@ def handle_ask(query, domain=None):
     return {"answer": answer, "sources": results[:5], "gap_analysis": gap, "total_results": len(results)}
 
 def handle_stats():
-    index_dir = Path(r"C:\Users\hexk\.txtai_index")
+    index_dir = Path.home() / ".txtai_index"
     if not index_dir.exists():
         return {"status": "not_found", "path": str(index_dir)}
     stats_file = index_dir / "stats.json"
