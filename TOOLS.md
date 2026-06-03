@@ -84,7 +84,7 @@ Supported arguments: `--dry-run` (preview), `--help` (usage)
 
 ## Credentials
 
-- **tushare token:** Stored in Python scripts (_exec_data.json, _calc scripts)
+- **tushare token:** Set via environment variable TUSHARE_TOKEN or in local config
 - **No .env file configured** — tokens are script-embedded (consider migrating)
 
 ---

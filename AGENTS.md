@@ -18,7 +18,6 @@ Super KAM（Knowledge-Augmented Memory）架构项目。
 
 ## 关联外部 vault
 
-- 张江高科 company vault: `C:\Users\hexk\OneDrive\Desktop\张江高科\database\`
 
 
 ## 会话启动序列

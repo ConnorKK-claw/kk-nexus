@@ -55,3 +55,21 @@ _upgrade_sk/
 .unified_index_cache.json
 _szse_format42_full.md
 14家上海国资案例数据.xlsx
+# 个人数据（不入公开仓库）
+USER.md
+HANDOVER.md
+backup/
+KK-NEXUS-MANUAL.md
+KAM-IMPLEMENTATION.md
+create_excel.py
+read_excel.py
+# 001 专有脚本
+scripts/calc_exec_ratio.py
+scripts/fetch_market_data.py
+scripts/fix_stock_source.py
+scripts/gen_bb0_comparison.py
+scripts/update_cases.py
+# 临时/缓存
+url-to-markdown/
+logs/
+docs/
