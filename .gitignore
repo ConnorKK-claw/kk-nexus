@@ -73,3 +73,13 @@ scripts/update_cases.py
 url-to-markdown/
 logs/
 docs/
+# 个人配置文件
+USER.md
+HANDOVER.md
+参考文件.xlsx
+张江高科-A2H全流程图*
+缓存/
+
+# 脚本备份
+scripts/*.bak
+scripts/update_cases_missing_data.py
