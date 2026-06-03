@@ -7,6 +7,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from scripts import config
+
 # Global state — lazy init
 _embeddings = None
 _metadata = None
@@ -62,12 +64,11 @@ def handle_ask(query, domain=None):
             context = "\n\n".join(
                 f"[{r['domain']}] {r['filepath']}\n{r['text']}" for r in results[:5]
             )
-
-知识库内容：
+            prompt = f"""知识库内容：
 {context}
 
 用户问题：{query}
-
+"""
             r = httpx.post(
                 "https://api.deepseek.com/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
@@ -205,7 +206,6 @@ if __name__ == "__main__":
     # If --test passed, run a single test query
     if "--test" in sys.argv:
         import json
-from scripts import config
         q = sys.argv[sys.argv.index("--test") + 1] if "--test" in sys.argv and len(sys.argv) > sys.argv.index("--test") + 1 else "测试"
         print(json.dumps(handle_search(q, 5), ensure_ascii=False, indent=2))
     else:

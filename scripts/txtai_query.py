@@ -1,4 +1,4 @@
-﻿import os
+import os
 os.environ.setdefault("HF_HUB_OFFLINE","1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE","1")
 import os, sys, json, argparse
@@ -9,6 +9,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+from scripts import config
 
 def load_index():
     from txtai import Embeddings
@@ -51,7 +53,6 @@ def cmd_ask(args):
     api_key = config.DEEPSEEK_API_KEY
     if api_key and not args.no_rag:
         import httpx
-from scripts import config
 
         prompt = f"""根据以下检索到的知识回答用户问题：
 

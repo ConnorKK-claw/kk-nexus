@@ -6,6 +6,9 @@ from pathlib import Path
 from datetime import datetime
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from scripts import config
 
 def check_health():
     index_dir = config.TEXTAI_INDEX_DIR
@@ -54,7 +57,7 @@ def check_health():
     # 4. Try to load and query
     try:
         from txtai import Embeddings
-from scripts import config
+
         embeddings = Embeddings()
         embeddings.load(str(index_dir))
         count = embeddings.count()

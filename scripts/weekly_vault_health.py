@@ -1,5 +1,4 @@
-from pathlib import Path
-﻿"""
+"""
 weekly_vault_health.py - 每周 vault 健康检查
 
 检查项:
@@ -11,7 +10,12 @@ weekly_vault_health.py - 每周 vault 健康检查
 静默运行，有问题才输出到控制台。
 """
 import os, re, sys
+from pathlib import Path
 from collections import defaultdict
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 from scripts import config
 
 VAULT = config.FA_VAULT_RAW_USER
