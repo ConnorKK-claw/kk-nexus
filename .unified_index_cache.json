@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-06-03T01:38:40.671693+00:00",
+  "vault_count": 10,
+  "vaults": [
+    {
+      "name": "equity-incentive",
+      "path": "C:\\Users\\hexk\\.codex\\skills\\equity-incentive\\vault",
+      "domain": "equity-incentive",
+      "file_count": 224
+    },
+    {
+      "name": "张江高科",
+      "path": "C:\\Users\\hexk\\OneDrive\\Desktop\\张江高科\\database",
+      "domain": "equity-incentive",
+      "file_count": 0
+    },
+    {
+      "name": "tax-compliance-expert",
+      "path": "C:\\Users\\hexk\\.codex\\skills\\tax-compliance-expert\\vault",
+      "domain": "财税合规专家知识蒸馏——涵盖发票处理、凭证记账、报表分析、税务计算、合规审计全流程。用户提到财税、发票、记账、报税、审计、合规、科目、分录、报表等关键词时触发。",
+      "file_count": 17
+    },
+    {
+      "name": "quant-factor-skill",
+      "path": "C:\\Users\\hexk\\.cc-switch\\skills\\quant-factor-skill\\vault",
+      "domain": "量化因子知识库与因子分析skill。整合Qlib Alpha158、Alpha360和WorldQuant Alpha101共619个因子。提供因子查询、策略推荐、Qlib DSL计算指导和回测方案设计。当用户或其他Agent需要量化因子信息、因子选择建议、因子表达式或回测方案时使用。触发词：量化因子、Alpha158、Alpha360、Alpha101、因子推荐、因子查询、动量因子、波动率因子、Qlib因子、因子回测、因子组合。",
+      "file_count": 0
+    },
+    {
+      "name": "a-share-research",
+      "path": "C:\\Users\\hexk\\.cc-switch\\skills\\a-share-research\\vault",
+      "domain": "A股研究团队——7位专家覆盖宏观、盘面、个股、估值、产业链、资金、风险分析，6套Workflow匹配不同场景。用户提到A股、个股分析、板块、持仓诊断、策略等关键词时触发。",
+      "file_count": 2
+    },
+    {
+      "name": "trading-analysis",
+      "path": "C:\\Users\\hexk\\.cc-switch\\skills\\trading-analysis\\vault",
+      "domain": "多角色辩论式交易分析——调度12个角色按5阶段完成投资分析，含多空辩论+三方风险评估，输出Markdown+HTML报告。用户提到交易分析、多空、买卖决策、投资分析等关键词时触发。",
+      "file_count": 0
+    },
+    {
+      "name": "weekly-report",
+      "path": "C:\\Users\\hexk\\.codex\\skills\\weekly-report\\vault",
+      "domain": "weekly-report",
+      "file_count": 110
+    },
+    {
+      "name": "engineering-practices",
+      "path": "C:\\Users\\hexk\\.codex\\skills\\engineering-practices\\vault",
+      "domain": "工程实践知识库 — CI/CD、PR 工作流、安全实践、目标规划等工程经验沉淀",
+      "file_count": 14
+    },
+    {
+      "name": "financial-analysis",
+      "path": "C:\\Users\\hexk\\.codex\\skills\\financial-analysis\\vault",
+      "domain": "financial-analysis",
+      "file_count": 992
+    },
+    {
+      "name": "hk-ipo",
+      "path": "C:\\Users\\hexk\\.codex\\skills\\hk-ipo\\vault",
+      "domain": "hk-ipo",
+      "file_count": 62
+    }
+  ]
+}
