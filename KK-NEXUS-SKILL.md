@@ -1,4 +1,4 @@
-# KK Nexus — 架构搭建与审计 Skill
+﻿# KK Nexus — 架构搭建与审计 Skill
 
 > **版本**: 1.0
 > **用途**: 在新 PC 上从零搭建完整的 KK Nexus 知识系统，或审计现有安装的完整性
@@ -12,7 +12,7 @@ KK Nexus 是一个基于 Codex 的**多员工知识系统**，采用四层架构
 
 ```
 第4层  集成层  — MCP / Obsidian / Ontology / txtai
-第3层  员工层  — 5 个 skill 化员工（001~005）
+第3层  员工层  — 6 个 skill 化员工（001~006）
 第2层  知识库  — vault 体系（raw / knowledge / cases / templates）
 第1层  工具链  — 36 个 Python 自动化脚本
 ```
@@ -25,7 +25,7 @@ KK Nexus 是一个基于 Codex 的**多员工知识系统**，采用四层架构
 - 自优化：memory/ + consolidate_learnings + WAL 协议
 - 自审计：每周健康检查 + 编码/BOM 检查 + 索引验证
 
-### 5 员工体系
+### 6 员工体系
 
 | 编号 | 名称 | domain | vault 路径 |
 |:---:|------|--------|-----------|
@@ -34,6 +34,7 @@ KK Nexus 是一个基于 Codex 的**多员工知识系统**，采用四层架构
 | 003 | weekly-report | wr | ~/.codex/skills/weekly-report/vault/ |
 | 004 | hk-ipo | hk | ~/.codex/skills/hk-ipo/vault/ |
 | 005 | financial-analysis | fa | ~/.codex/skills/financial-analysis/vault/ |
+| 006 | serenity-a-share-investor | asi | ~/.codex/skills/serenity-a-share-investor/vault/ |
 
 ---
 
