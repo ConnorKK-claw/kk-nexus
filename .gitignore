@@ -1,30 +1,85 @@
-﻿# 本地 vault 数据
-skills/*/vault/cases/
-skills/*/vault/raw/
-skills/*/vault/memory/
-skills/*/vault/journal/
-skills/*/vault/auto-update/
-skills/*/vault/knowledge/
-skills/*/vault/templates/
-
-# API key 配置文件
-.env
-.env.*
-*.env
-
-# 系统文件
-.DS_Store
 Thumbs.db
-
-# Python
+.DS_Store
 __pycache__/
 *.pyc
-.venv/
+.env
+.txtai/
+.txtai_index/
+**/vault/.obsidian/workspace.json
+**/raw/user/*.pdf
+**/raw/user/*.docx
+**/raw/user/*.xlsx
+**/raw/original/*
+.codex/
+MEMORY.md
+SESSION-STATE.md
+working-buffer.md
+**/vault/memory/*.md
+**/vault/journal/*.md
+!.gitkeep
+UNIFIED_INDEX.md
+**/knowledge/index.md
+!**/knowledge/authors-index.md
 
-# Python cache
-__pycache__/
-*.pyc
 
-# Obsidian local
-skills/*/.obsidian/workspace.json
+# GBrain 残留（已卸载）
+.gbrain-src/
 
+# Scripts 构建缓存
+scripts/_archive/
+scripts/node_modules/
+scripts/.backup-corrupted/
+scripts/__pycache__/
+scripts/package.json
+scripts/bun.lock
+
+# 大文件/本地数据
+参考文件.xlsx
+张江高科-A2H全流程图.canvas
+.bridged_cache.json
+.txtai_index/
+.txtai/
+.unified_index_cache.json
+
+# Vault 内容（员工数据不固化）
+.codex/
+
+
+# 个人数据（取消追踪，不入仓库）
+.gbrain-src/
+.learnings/
+memory/
+_pdf_cache/
+_upgrade_sk/
+.bridged_cache.json
+.unified_index_cache.json
+_szse_format42_full.md
+14家上海国资案例数据.xlsx
+# 个人数据（不入公开仓库）
+USER.md
+HANDOVER.md
+backup/
+KK-NEXUS-MANUAL.md
+KAM-IMPLEMENTATION.md
+create_excel.py
+read_excel.py
+# 001 专有脚本
+scripts/calc_exec_ratio.py
+scripts/fetch_market_data.py
+scripts/fix_stock_source.py
+scripts/gen_bb0_comparison.py
+scripts/update_cases.py
+# 临时/缓存
+url-to-markdown/
+logs/
+docs/
+# 个人配置文件
+USER.md
+HANDOVER.md
+参考文件.xlsx
+张江高科-A2H全流程图*
+缓存/
+
+# 脚本备份
+scripts/*.bak
+scripts/update_cases_missing_data.py
