@@ -1,4 +1,4 @@
-﻿"""txtai shared utilities for KK Nexus"""
+"""txtai shared utilities for KK Nexus"""
 import os, re, sys, json
 from pathlib import Path
 from datetime import datetime

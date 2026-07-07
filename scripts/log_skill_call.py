@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """log_skill_call.py - Append skill call log to engineering-practices vault journal."""
 import argparse, sys
 from pathlib import Path

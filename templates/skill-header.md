@@ -1,4 +1,4 @@
-﻿# KAM Vault 上下文注入
+# KAM Vault 上下文注入
 
 > 将此段插入 SKILL.md 第一个 `##` 标题之前，以启用 vault 知识注入。
 

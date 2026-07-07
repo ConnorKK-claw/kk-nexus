@@ -1,4 +1,4 @@
-﻿# KAM Shared Vault 上下文注入（工程实践）
+# KAM Shared Vault 上下文注入（工程实践）
 
 > 将此段插入 SKILL.md 第一个 ## 标题之前，以启用共享 vault 知识注入。
 > 本 vault 由多个 engineering workflow skills 共享。
