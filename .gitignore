@@ -1,0 +1,64 @@
+﻿# ====================================
+# KK Nexus — .gitignore
+# ====================================
+
+# Personal identity & session state
+SOUL.md
+USER.md
+MEMORY.md
+SESSION-STATE.md
+UNIFIED_INDEX.md
+HANDOVER.md
+HEARTBEAT.md
+ONBOARDING.md
+PLAN.md
+TOOLS.md
+VERIFY.md
+CODE_WIKI.md
+
+# Vault contents (personal knowledge)
+vault/
+memory/
+.learnings/
+
+# Workspace caches
+.bridged_cache.json
+.unified_index_cache.json
+_pdf_cache/
+__pycache__/
+*.pyc
+
+# IDE & agent caches
+.omo/
+.reasonix/
+.trae/
+.tradingagents_cache/
+.tradingagents_logs/
+.tradingagents_memory/
+
+# Logs & outputs
+logs/
+output/
+reports/
+distill_full.log
+*.log
+
+# Domain-specific datasources
+astock_data_core.py
+astock_adapters.py
+_szse_format42_full.md
+hkex_listing_rules.html
+hk_a_share_baseline.json
+
+# Personal config
+config.yaml
+start_dashboard.py
+start_dashboard.bat
+create_excel.py
+read_excel.py
+test_ocr.png
+test_write.txt
+
+# OS junk
+Thumbs.db
+.DS_Store
