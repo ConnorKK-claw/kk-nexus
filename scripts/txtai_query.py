@@ -25,62 +25,98 @@ def load_index():
     return embeddings, meta, index_dir
 
 def cmd_search(args):
+    from txtai_utils import rerank_with_bge
     embeddings, meta, _ = load_index()
-    results = embeddings.search(args.query, args.limit)
-    for r in results:
+    # 召回扩大到 limit*3 用于 rerank；reranker 不可用时降级为原序
+    recall_n = max(args.limit * 3, 30)
+    raw = embeddings.search(args.query, recall_n)
+    docs = []
+    for r in raw:
         doc_id = r["id"]
         m = meta.get(doc_id, {})
-        score = round(r["score"], 4)
-        title = m.get("title", doc_id)
-        domain = m.get("domain", "")
-        filepath = m.get("filepath", doc_id)
-        text = r.get("text", "")[:200].replace("\n", " ")
-        print(f"[{score:.4f}] ({domain}) {title}")
+        docs.append({
+            "id": doc_id,
+            "score": round(r["score"], 4),
+            "text": r.get("text", ""),
+            "title": m.get("title", doc_id),
+            "domain": m.get("domain", ""),
+            "filepath": m.get("filepath", doc_id),
+        })
+    # 二阶段 rerank（reranker 不可用时 rerank_with_bge 内部降级为原序截断）
+    reranked = rerank_with_bge(args.query, docs, top_n=args.limit, threshold=0.3)
+    if not reranked:
+        print("召回结果经 rerank 阈值过滤后为空，知识库可能无相关内容。")
+        return
+    for d in reranked:
+        score = d.get("rerank_score", d.get("score", 0))
+        text = d.get("text", "")[:200].replace("\n", " ")
+        print(f"[{score:.4f}] ({d['domain']}) {d['title']}")
         print(f"       {text}...")
-        print(f"       ? {filepath}")
+        print(f"       ? {d['filepath']}")
         print()
 
 def cmd_ask(args):
+    from txtai_utils import rerank_with_bge
     embeddings, meta, _ = load_index()
-    results = embeddings.search(args.query, 10)
-    if not results:
+    # 召回 30 条用于 rerank
+    raw = embeddings.search(args.query, 30)
+    if not raw:
         print("无搜索结果")
         return
-    context = "\n\n".join(
-        f"[{meta.get(d['id'], {}).get('domain', '?')}] {meta.get(d['id'], {}).get('title', d['id'])}\n{d.get('text', '')[:500]}"
-        for d in results[:5]
+    docs = []
+    for r in raw:
+        doc_id = r["id"]
+        m = meta.get(doc_id, {})
+        docs.append({
+            "id": doc_id,
+            "score": round(r["score"], 4),
+            "text": r.get("text", ""),
+            "title": m.get("title", doc_id),
+            "domain": m.get("domain", ""),
+            "filepath": m.get("filepath", doc_id),
+        })
+    # 二阶段 rerank 取 top 5
+    reranked = rerank_with_bge(args.query, docs, top_n=5, threshold=0.3)
+    if not reranked:
+        print("召回结果经 rerank 阈值过滤后为空，知识库可能无相关内容。")
+        return
+    # 构造带来源标注的 context（合规要求：每个指导性观点须附 [来源: 文件名]）
+    context_block = "\n\n".join(
+        f"[来源{i+1}: {d.get('filepath', d.get('title', ''))}]\n{d.get('text', '')[:500]}"
+        for i, d in enumerate(reranked)
     )
     api_key = config.DEEPSEEK_API_KEY
     if api_key and not args.no_rag:
-        import httpx
+        prompt = f"""基于以下知识库来源回答问题。每个指导性观点必须以 [来源: 文件名] 标注。
+若来源不足以回答，明确说明"知识库无充分依据"，不得编造。
 
-        prompt = f"""根据以下检索到的知识回答用户问题：
+{context_block}
 
-        {context}
+问题：{args.query}
 
-        用户问题：{args.query}
-
-        请基于检索到的知识回答问题，如果知识不足以回答请明确说明。"""
+回答（含来源标注）："""
         try:
-            r = httpx.post(
-                "https://api.deepseek.com/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "deepseek-chat",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.1,
-                },
-                timeout=30,
+            # 统一 LLM client（限流 + OTel trace）
+            from llm_client import call_llm
+            answer, _usage = call_llm(
+                messages=[{"role": "user", "content": prompt}],
+                trace_name="txtai_query.rag_synthesis",
             )
-            answer = r.json()["choices"][0]["message"]["content"]
+            # 后处理：检查来源标注合规性，无标注则追加推测声明
+            if "[来源:" not in answer and "[来源" not in answer:
+                answer += "\n\n[自行推测观点] 本回答未能在知识库中找到充分来源标注，请核实。"
             print(answer)
         except Exception as e:
             print(f"[RAG 请求失败: {e}]")
             print("降级为纯语义搜索")
             cmd_search(args)
     else:
-        print("未设置 DEEPSEEK_API_KEY 或使用 --no-rag无搜索结果\n")
-        cmd_search(args)
+        print("未设置 DEEPSEEK_API_KEY 或使用 --no-rag，返回 rerank 后的搜索结果：\n")
+        for d in reranked:
+            score = d.get("rerank_score", d.get("score", 0))
+            print(f"[{score:.4f}] ({d['domain']}) {d['title']}")
+            print(f"       ? {d['filepath']}")
+            print()
 
 def cmd_stats(args):
     index_dir = config.TEXTAI_INDEX_DIR
@@ -124,6 +160,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

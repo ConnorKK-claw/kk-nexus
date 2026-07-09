@@ -6,11 +6,11 @@ vault_ingest.py — 文件转化导入 vault
     python vault_ingest.py --dir <目录> --vault <vault-path> --source user|agent
     python vault_ingest.py <文件> --vault <path> --source user --dry-run
 
-支持格式: PDF, DOCX, PPTX, XLSX, XLS, MD, HTML, CSV, TXT
-依赖: markitdown (已安装)
+支持格式: PDF, DOCX, PPTX, XLSX, XLS, MD, HTML, CSV, TXT, JPG, JPEG, PNG, BMP, TIFF, TIF
+依赖: docling (可选，优先使用) + markitdown (必装，docling 降级兜底)
 
 流程:
-  1. 文件 → markitdown → Markdown 文本
+  1. 文件 → docling → Markdown 文本（失败降级 markitdown）
   2. 添加 YAML frontmatter（自动填充元数据）
   3. 按命名规范保存到 vault/raw/{source}/
   4. 原文件归档到 vault/raw/original/
@@ -30,6 +30,9 @@ from pathlib import Path
 from datetime import datetime
 
 SUPPORTED_EXT = {".pdf", ".docx", ".pptx", ".xlsx", ".xls", ".md", ".html", ".csv", ".txt", ".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"}
+
+# P2-1: docling 可用性缓存（None=未检测, True=可用, False=未安装）
+_DOCLING_AVAILABLE = None
 
 
 def compute_md5(filepath: Path) -> str:
@@ -69,15 +72,48 @@ def check_duplicate(vault_dir: Path, filepath: Path) -> Path | None:
     return None
 
 
+def convert_with_docling(filepath: Path) -> str | None:
+    """P2-1: 用 docling 解析文档为 markdown。不可用或失败返回 None（降级 markitdown）。
+
+    docling 对 PDF/DOCX 的表格、版式、公式解析质量优于 markitdown。
+    首次调用检测可用性并缓存结果，避免每次 try-import 开销。
+    """
+    global _DOCLING_AVAILABLE
+    if _DOCLING_AVAILABLE is None:
+        try:
+            from docling.document_converter import DocumentConverter  # noqa: F401
+            _DOCLING_AVAILABLE = True
+        except ImportError:
+            _DOCLING_AVAILABLE = False
+    if not _DOCLING_AVAILABLE:
+        return None
+    try:
+        from docling.document_converter import DocumentConverter
+        converter = DocumentConverter()
+        result = converter.convert(str(filepath))
+        return result.document.export_to_markdown()
+    except Exception as e:
+        print(f"  [WARN] docling 解析失败，降级 markitdown: {e}")
+        return None
+
+
 def convert_to_markdown(filepath: Path) -> str | None:
-    """使用 markitdown 将文件转为 Markdown 文本。
-    对 .md 文件直接读取，.txt 直接读取，其他格式走 markitdown。
+    """将文件转为 Markdown 文本。
+
+    P2-1: 优先使用 docling（表格/版式/公式更优），降级 markitdown。
+    对 .md/.txt 文件直接读取。
     """
     ext = filepath.suffix.lower()
 
     if ext in {".md", ".txt"}:
         return filepath.read_text(encoding="utf-8")
 
+    # P2-1: 优先 docling
+    md_content = convert_with_docling(filepath)
+    if md_content is not None:
+        return md_content
+
+    # 降级 markitdown
     try:
         result = subprocess.run(
             ["markitdown", str(filepath)],
@@ -304,8 +340,8 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  python vault_ingest.py 文件.pdf --vault ~/.codex/skills/equity-incentive/vault --source user --tags "法规,国资" --domain equity-incentive
-  python vault_ingest.py --dir ./素材/ --vault ~/.codex/skills/equity-incentive/vault --source agent
+  python vault_ingest.py 文件.pdf --vault ~/.codex/skills/my-domain/vault --source user --tags "法规,国资" --domain my-domain
+  python vault_ingest.py --dir ./素材/ --vault ~/.codex/skills/my-domain/vault --source agent
   python vault_ingest.py 文件.pdf --vault ./vault --source user --dry-run
         """,
     )

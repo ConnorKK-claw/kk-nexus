@@ -196,3 +196,26 @@ graph LR
 ---
 
 *用 KK Nexus 搭建你自己的 AI 员工军团。*
+
+
+
+## 近期更新（v1.1+）
+
+### 语义检索增强
+- **二阶段重排** — bge-reranker-base 交叉编码器，召回 top-N → rerank → top-5
+- **混合检索** — BM25 关键词 + 向量双路融合（txtai hybrid）
+- **父子分块** — 按 \\##\\ 标题切分，max_chunk=800，overlap=100
+
+### 文档解析升级
+- **docling 优先** — PDF/DOCX 表格/版式/公式解析更优
+- **markitdown 降级** — docling 不可用时自动降级兜底
+
+### 可观测性
+- **OTel JSONLSpanExporter** — 零 Langfuse 依赖，trace 写入本地文件
+- **统一 LLM client** — 收口所有 LLM 调用，统一限流 + OTel trace
+
+### 健康检查增强
+- **--json 参数** — 结构化输出供 dashboard 消费
+- **退出码分离** — JSON 模式退出码始终 0，健康状态由 payload 表达
+- **asyncio 并发** — 多 vault 并发检查替代串行
+

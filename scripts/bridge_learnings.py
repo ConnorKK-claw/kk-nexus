@@ -11,8 +11,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CACHE_PATH = PROJECT_ROOT / ".bridged_cache.json"
 VAULTS = [
-    Path.home() / ".codex" / "skills" / "equity-incentive" / "vault",
-    Path.home() / ".codex" / "skills" / "tax-compliance-expert" / "vault",
+    # Path.home() / ".codex" / "skills" / "my-skill" / "vault",
+    Path.home() / ".codex" / "skills" / "another-domain" / "vault",
 ]
 
 def load_cache() -> dict:

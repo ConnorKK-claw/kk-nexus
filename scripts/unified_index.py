@@ -264,16 +264,16 @@ def main():
     vault_data = load_ontology_vaults()
     # Fallback vaults: 既补全 ontology 中缺失的 KAM vault，也保留项目内独立 vault
     fallback_vaults = [
-        Path.home() / ".codex" / "skills" / "equity-incentive" / "vault",
-        Path.home() / ".codex" / "skills" / "financial-analysis" / "vault",
-        Path.home() / ".codex" / "skills" / "tax-compliance-expert" / "vault",
-        Path.home() / ".codex" / "skills" / "weekly-report" / "vault",
-        Path.home() / ".codex" / "skills" / "hk-ipo" / "vault",
-        Path.home() / ".codex" / "skills" / "trading-agents-007" / "vault",
-        Path.home() / ".codex" / "skills" / "serenity-a-share-investor" / "vault",
+        # Path.home() / ".codex" / "skills" / "my-skill" / "vault",
+        Path.home() / ".codex" / "skills" / "fa-domain" / "vault",
+        Path.home() / ".codex" / "skills" / "another-domain" / "vault",
+        Path.home() / ".codex" / "skills" / "wr-domain" / "vault",
+        Path.home() / ".codex" / "skills" / "hk-domain" / "vault",
+        Path.home() / ".codex" / "skills" / "ta-domain" / "vault",
+        Path.home() / ".codex" / "skills" / "asi-domain" / "vault",
         Path.home() / ".codex" / "skills" / "ima-knowledge" / "vault",
         Path.home() / ".codex" / "skills" / "quant-factor-skill" / "vault",
-        Path.home() / ".codex" / "skills" / "trading-analysis" / "vault",
+        Path.home() / ".codex" / "skills" / "ta2-domain" / "vault",
         PROJECT_ROOT / "skills" / "overseas-research-20260706-001" / "vault",
     ]
     existing_paths = {str(v["path"]).lower() for v in vault_data}

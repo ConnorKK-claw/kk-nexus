@@ -313,6 +313,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=["quick","weekly"], default="quick",
                         help="quick: standard vault health; weekly: deep cross-vault scan")
     parser.add_argument("--auto-expire", action="store_true", help="自动标记过期节点")
+    parser.add_argument("--json", action="store_true", help="输出 JSON 格式报告（供 dashboard 消费）")
     args = parser.parse_args()
 
     if args.mode == 'weekly':
@@ -322,70 +323,114 @@ if __name__ == "__main__":
 
     vault_dir = args.vault_path.resolve()
     if not vault_dir.is_dir():
-        print(f"[错误] vault 目录不存在: {vault_dir}")
+        if args.json:
+            import json
+            print(json.dumps({"error": f"vault 目录不存在: {vault_dir}"}, ensure_ascii=False))
+        else:
+            print(f"[错误] vault 目录不存在: {vault_dir}")
         sys.exit(1)
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    print(f"健康检查: {vault_dir.name}")
-    print(f"时间: {now}")
-    print(f"参数: raw 未蒸馏 > {args.raw_days} 天, knowledge 过期 > {args.knowledge_months} 个月")
-    print()
+    # P1-3: 收集结构化 issues 供 --json 输出
+    issues_list = []
+
+    if not args.json:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        print(f"健康检查: {vault_dir.name}")
+        print(f"时间: {now}")
+        print(f"参数: raw 未蒸馏 > {args.raw_days} 天, knowledge 过期 > {args.knowledge_months} 个月")
+        print()
 
     # 1. Raw 未蒸馏
     stale_raw = check_raw_stale(vault_dir, args.raw_days)
-    if stale_raw:
-        print(f"[WARN] {len(stale_raw)} 个 raw 文件超期未蒸馏:")
-        for s in stale_raw:
-            print(f"  - {s}")
-        print()
-    else:
-        print("[OK] raw 文件均在蒸馏窗口内")
-        print()
+    for s in stale_raw:
+        issues_list.append({"type": "raw_stale", "severity": "warn", "file": s, "detail": f"raw 文件超 {args.raw_days} 天未蒸馏"})
+    if not args.json:
+        if stale_raw:
+            print(f"[WARN] {len(stale_raw)} 个 raw 文件超期未蒸馏:")
+            for s in stale_raw:
+                print(f"  - {s}")
+            print()
+        else:
+            print("[OK] raw 文件均在蒸馏窗口内")
+            print()
 
     # 2. Knowledge 过期
     stale_knowledge = check_knowledge_stale(vault_dir, args.knowledge_months)
-    if stale_knowledge:
-        print(f"[WARN] {len(stale_knowledge)} 个 knowledge 节点长期未更新:")
-        for s in stale_knowledge:
-            print(f"  - {s}")
-        print()
-    else:
-        print("[OK] knowledge 节点均在有效期内")
-        print()
+    for s in stale_knowledge:
+        issues_list.append({"type": "knowledge_stale", "severity": "warn", "file": s, "detail": f"knowledge 节点超 {args.knowledge_months} 个月未更新"})
+    if not args.json:
+        if stale_knowledge:
+            print(f"[WARN] {len(stale_knowledge)} 个 knowledge 节点长期未更新:")
+            for s in stale_knowledge:
+                print(f"  - {s}")
+            print()
+        else:
+            print("[OK] knowledge 节点均在有效期内")
+            print()
 
     # 3. 公告碎片检测
     ad = check_fragment_announcements(vault_dir)
-    if ad:
-        print(f"[INFO] {len(ad)} 个公告碎片建议归档")
-        for s in ad:
-            print(f"  - {s}")
-        print()
-    else:
-        print("[OK] 无公告碎片节点")
-        print()
+    for s in ad:
+        issues_list.append({"type": "fragment", "severity": "info", "file": s, "detail": "公告碎片建议归档"})
+    if not args.json:
+        if ad:
+            print(f"[INFO] {len(ad)} 个公告碎片建议归档")
+            for s in ad:
+                print(f"  - {s}")
+            print()
+        else:
+            print("[OK] 无公告碎片节点")
+            print()
 
     # 4. 重复标签
     dup_tags = check_duplicate_tags(vault_dir)
-    if dup_tags:
-        print(f"[INFO] {len(dup_tags)} 个标签下有多个节点:")
-        for s in dup_tags:
-            print(f"  - {s}")
-        print()
-    else:
-        print("[OK] 无标签重复")
-        print()
+    for s in dup_tags:
+        issues_list.append({"type": "duplicate_tags", "severity": "info", "file": s, "detail": "标签下有多个节点"})
+    if not args.json:
+        if dup_tags:
+            print(f"[INFO] {len(dup_tags)} 个标签下有多个节点:")
+            for s in dup_tags:
+                print(f"  - {s}")
+            print()
+        else:
+            print("[OK] 无标签重复")
+            print()
 
     # 4. Auto-expire
     if args.auto_expire:
-        print("自动标记过期...")
+        if not args.json:
+            print("自动标记过期...")
         n = auto_expire(vault_dir, args.knowledge_months)
-        print(f"已标记 {n} 个过期节点")
-        if n > 0:
-            print("建议运行 build_index.py 重建索引")
+        if not args.json:
+            print(f"已标记 {n} 个过期节点")
+            if n > 0:
+                print("建议运行 build_index.py 重建索引")
 
     total = len(stale_raw) + len(stale_knowledge) + len(ad) + len(dup_tags)
-    print(f"\n总提醒: {total} 项")
-    if total > 0:
+
+    # P1-3: JSON 输出
+    if args.json:
+        import json
+        report = {
+            "vault": str(vault_dir),
+            "mode": args.mode,
+            "timestamp": datetime.now().isoformat(),
+            "issues": issues_list,
+            "summary": {
+                "total": total,
+                "raw_stale": len(stale_raw),
+                "knowledge_stale": len(stale_knowledge),
+                "fragments": len(ad),
+                "duplicate_tags": len(dup_tags),
+            }
+        }
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        print(f"\n总提醒: {total} 项")
+
+    # WeKnora 设计：CLI 退出码反映"工具执行是否成功"，API JSON 输出成功即退出 0
+    # --json 模式下 JSON 已正常输出，健康状态交由 payload.summary.total 表达
+    if total > 0 and not args.json:
         sys.exit(1)
 
 # === --mode weekly (merged from weekly_vault_health.py) ===

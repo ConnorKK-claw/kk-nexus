@@ -7,7 +7,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from txtai_utils import discover_md_files, read_md, build_index_text
+from txtai_utils import discover_md_files, read_md, build_index_text, chunk_markdown
 from config import TEXTAI_INDEX_DIR, load_config
 
 def _progress_iter(items, total, step=100):
@@ -35,33 +35,47 @@ def build_index(model="BAAI/bge-small-zh-v1.5", full=False, output_dir=None):
         print("ERROR: No vault files found. Check vault paths.")
         return False
 
-    # Build index data
+    # Build index data — P1-2: 按 ## 标题分块索引
     texts = []
     ids = []
     all_meta = {}
     skipped = 0
+    total_files_indexed = 0
     for fp, domain in files:
         title, content, meta = read_md(fp)
         if not content or content.isspace():
             skipped += 1
             continue
-        text = build_index_text(title, content, meta)
         meta["filepath"] = str(fp)
         meta["domain"] = domain
         relpath = fp.relative_to(fp.anchor) if fp.is_absolute() else fp
-        doc_id = str(relpath).replace("\\", "/")
-        texts.append(text)
-        ids.append(doc_id)
-        all_meta[doc_id] = meta
+        base_doc_id = str(relpath).replace("\\", "/")
 
-    print(f"Indexing {len(texts)} documents ({skipped} skipped)...")
+        # P1-2: 分块索引，每个 chunk 作为一个 doc_id
+        chunks = chunk_markdown(content)
+        for idx, chunk in enumerate(chunks):
+            if not chunk["text"].strip():
+                continue
+            text = build_index_text(title, chunk["text"], meta)
+            doc_id = f"{base_doc_id}#{idx}" if len(chunks) > 1 else base_doc_id
+            chunk_meta = dict(meta)
+            chunk_meta["section"] = chunk["section"]
+            chunk_meta["parent_file"] = base_doc_id
+            chunk_meta["chunk_idx"] = idx
+            texts.append(text)
+            ids.append(doc_id)
+            all_meta[doc_id] = chunk_meta
+        total_files_indexed += 1
+
+    print(f"Indexing {len(texts)} chunks from {total_files_indexed} files ({skipped} skipped)...")
     t0 = time.time()
 
     data = list(zip(ids, texts))
     total = len(data)
 
     if full or not (output_dir / "config.json").exists():
-        embeddings = Embeddings(path=model, content=True, sqlite={})
+        # P1-1: 启用 hybrid 检索（BM25 关键词 + 向量双路融合）
+        embeddings = Embeddings(path=model, content=True, sqlite={}, hybrid=True, scoring={"method": "bm25"})
         embeddings.index(_progress_iter(data, total, step=100))
         embeddings.save(str(output_dir))
     else:
@@ -80,12 +94,15 @@ def build_index(model="BAAI/bge-small-zh-v1.5", full=False, output_dir=None):
     # Save stats
     stats = {
         "total_docs": len(texts),
-        "total_files": len(files),
+        "total_files": total_files_indexed,
+        "total_files_scanned": len(files),
         "skipped": skipped,
         "model": model,
         "timestamp": time.time(),
         "date": time.strftime("%Y-%m-%d %H:%M:%S"),
         "vaults": list(set(m.get("domain", "") for m in all_meta.values())),
+        "chunking": True,
+        "hybrid": True,
     }
     (output_dir / "stats.json").write_text(json.dumps(stats, ensure_ascii=False), encoding="utf-8")
     print(f"Index saved to {output_dir}")

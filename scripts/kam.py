@@ -22,9 +22,9 @@ PROJECT_ROOT = SCRIPTS.parent
 
 # ── Vault aliases (shortcuts for common vault paths) ─────────────
 VAULT_ALIASES = {
-    "ei": os.path.expanduser("~/.codex/skills/equity-incentive/vault"),
+    "ei": os.path.expanduser("~/.codex/skills/my-domain/vault"),
     "tax": os.path.expanduser("~/.codex/skills/tax-compliance-expert/vault"),
-    "equity-incentive": os.path.expanduser("~/.codex/skills/equity-incentive/vault"),
+    "my-domain": os.path.expanduser("~/.codex/skills/my-domain/vault"),
     "tax-compliance": os.path.expanduser("~/.codex/skills/tax-compliance-expert/vault"),
 }
 

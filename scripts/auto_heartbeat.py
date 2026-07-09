@@ -19,7 +19,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LOGS = PROJECT_ROOT / "logs"
 LOGS.mkdir(exist_ok=True)
-VAULT_PATH = Path.home() / ".codex" / "skills" / "equity-incentive" / "vault"
+# VAULT_PATH: 请替换为你的 vault 路径，例如：# VAULT_PATH = Path.home() / ".codex" / "skills" / "my-skill" / "vault"
 
 def run_health() -> str:
     """Run health_check.py --mode weekly and capture its output."""
@@ -314,3 +314,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

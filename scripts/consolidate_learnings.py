@@ -11,13 +11,13 @@ TRACK = PROJ / ".learnings" / ".consolidated_until"
 
 # Employee vault paths (for --all-vaults)
 VAULTS = [
-    ("001", Path.home() / ".cc-switch" / "skills" / "equity-incentive" / "vault"),
-    ("002", Path.home() / ".cc-switch" / "skills" / "tax-compliance-expert" / "vault"),
-    ("003", Path.home() / ".cc-switch" / "skills" / "weekly-report" / "vault"),
-    ("004", Path.home() / ".cc-switch" / "skills" / "hk-ipo" / "vault"),
-    ("005", Path.home() / ".cc-switch" / "skills" / "financial-analysis" / "vault"),
-    ("006", Path.home() / ".cc-switch" / "skills" / "a-share-research" / "vault"),
-    ("007", Path.home() / ".cc-switch" / "skills" / "trading-analysis" / "vault"),
+    ("001", Path.home() / ".codex" / "skills" / "my-domain" / "vault"),
+    ("002", Path.home() / ".codex" / "skills" / "another-domain" / "vault"),
+    ("003", Path.home() / ".codex" / "skills" / "wr-domain" / "vault"),
+    ("004", Path.home() / ".codex" / "skills" / "hk-domain" / "vault"),
+    ("005", Path.home() / ".codex" / "skills" / "fa-domain" / "vault"),
+    ("006", Path.home() / ".codex" / "skills" / "asr-domain" / "vault"),
+    ("007", Path.home() / ".codex" / "skills" / "ta2-domain" / "vault"),
 ]
 
 LEARN_FNAME = "LEARNINGS.md"

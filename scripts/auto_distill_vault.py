@@ -22,13 +22,13 @@ from pathlib import Path
 
 # === Domain 推断映射表（vault 路径 → domain 码）===
 _VAULT_DOMAIN_MAP = {
-    "equity-incentive": "ei",
-    "tax-compliance-expert": "tax",
-    "weekly-report": "wr",
-    "hk-ipo": "hk",
-    "financial-analysis": "fa",  # 注意：005 实际用 distill_fa.py，这里仅为完整性
-    "serenity-a-share-investor": "asi",
-    "trading-agents-007": "ta",
+    "my-domain": "ei",
+    "another-domain": "tax",
+    "wr-domain": "wr",
+    "hk-domain": "hk",
+    "fa-domain": "fa",  # 注意：005 实际用 distill_fa.py，这里仅为完整性
+    "asi-domain": "asi",
+    # "your-skill-name": "yd"  # 在此添加你的 domain 映射,
 }
 
 
@@ -52,19 +52,19 @@ def infer_domain_from_vault(vault_path) -> str:
 
 # Domain 码 → 显示名映射（用于 frontmatter domain 字段）
 _DOMAIN_DISPLAY_MAP = {
-    "ei": "equity-incentive",
-    "tax": "tax-compliance-expert",
-    "wr": "weekly-report",
-    "hk": "hk-ipo",
-    "fa": "financial-analysis",
-    "asi": "serenity-a-share-investor",
-    "ta": "trading-agents-007",
+    "ei": "my-domain",
+    "tax": "another-domain",
+    "wr": "wr-domain",
+    "hk": "hk-domain",
+    "fa": "fa-domain",
+    "asi": "asi-domain",
+    "ta": "ta-domain",
 }
 
 
 def get_domain_display(domain_code: str) -> str:
     """domain 码 → 显示名（用于 frontmatter）。"""
-    return _DOMAIN_DISPLAY_MAP.get(domain_code, "equity-incentive")
+    return _DOMAIN_DISPLAY_MAP.get(domain_code, "my-domain")
 
 
 def find_zk_categories(vault_path) -> "Path | None":
@@ -189,7 +189,7 @@ def has_case_coverage(vault, filename: str, meta: dict | None = None) -> str | N
 def resolve_vault(args_vault):
     if args_vault:
         return Path(args_vault).resolve()
-    hv = Path.home() / ".codex" / "skills" / "equity-incentive" / "vault"
+    hv = Path.home() / ".codex" / "skills" / "my-domain" / "vault"
     if hv.is_dir():
         return hv
     for p in [Path.cwd()] + list(Path.cwd().parents):
@@ -339,7 +339,7 @@ def classify_filename(name: str, zk_categories: dict = None):
     return ("knowledge", "gg")
 
 
-def build_frontmatter(orig_meta: dict, body: str, vault: Path, target: str, catseq: str) -> str:
+def build_frontmatter(orig_meta: dict, body: str, vault: Path, target: str, catseq: str, related=None) -> str:
     """Build ZK knowledge node frontmatter + full body."""
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -375,6 +375,8 @@ def build_frontmatter(orig_meta: dict, body: str, vault: Path, target: str, cats
     lines.append(f"original_status: raw")
     lines.append(f"source_hash: {source_hash}")
     lines.append(f"distilled_zk_id: {zk_id}")
+    if related:
+        lines.append(f"related: {format_related_yaml(related)}")
     lines.append("---")
     lines.append("")
     lines.append(body)
@@ -533,11 +535,23 @@ def main():
             errors += 1
 
     # Normal distillation loop
+    # P0-5: 预扫描已有节点，供 related 字段计算
+    existing_nodes = collect_existing_nodes(vault)
+
     for f, meta, target, catseq in classified:
         try:
             content = f.read_text(encoding="utf-8")
             _, body = parse_frontmatter(content)
-            new_content, zk_id = build_frontmatter(meta, body, vault, target, catseq)
+
+            # P0-5: 计算 related 关联（同 tag ≥2 → 同级）
+            current_tags = meta.get("tags", [])
+            if isinstance(current_tags, str):
+                current_tags = [current_tags]
+            if "auto-distilled" not in current_tags:
+                current_tags.append("auto-distilled")
+            related = build_related("", current_tags, existing_nodes) if target == "knowledge" else None
+
+            new_content, zk_id = build_frontmatter(meta, body, vault, target, catseq, related=related)
 
             # Write to target directory
             if target == "templates":
@@ -560,6 +574,18 @@ def main():
 
             # Update raw status
             update_raw_status(f)
+
+            # P0-4: 激活蒸馏溯源记录
+            try:
+                rel = f.relative_to(vault)
+                source_rel = f"raw/{rel.as_posix().split('raw/', 1)[1]}" if "raw" in str(rel) else str(rel)
+                _write_distilled_trace(vault, source_rel, [out_path.name], "auto_distill_vault.py")
+            except Exception as trace_err:
+                print(f"  [WARN] 溯源记录写入失败: {trace_err}")
+
+            # P0-5: 追加到 existing_nodes 供后续文件使用
+            if target == "knowledge":
+                existing_nodes.append({"id": out_path.stem, "tags": current_tags, "catseq": catseq})
 
             created += 1
             print(f"  [OK] {f.name[:50]:50s} -> {out_path.name[:55]}")
@@ -602,3 +628,62 @@ def _write_distilled_trace(vault_path, source_rel, nodes, script_name="auto_dist
         "status": "success"
     }
     trace_file.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+# === P0-5: 蒸馏 related 字段计算辅助函数 ===
+
+def collect_existing_nodes(vault: Path) -> list:
+    """扫描 vault/knowledge/ 已有节点，返回 [{id, tags, catseq}]。
+
+    用于蒸馏时计算新节点与已有节点的 related 关联（同 tag ≥2 → 同级）。
+    """
+    result = []
+    knowledge_dir = vault / "knowledge"
+    if not knowledge_dir.is_dir():
+        return result
+    for f in sorted(knowledge_dir.glob("zk-*.md")):
+        try:
+            content = f.read_text(encoding="utf-8", errors="replace")
+            meta, _ = parse_frontmatter(content)
+            tags = meta.get("tags", [])
+            if isinstance(tags, str):
+                tags = [t.strip() for t in tags.split(",") if t.strip()]
+            result.append({"id": f.stem, "tags": tags, "catseq": ""})
+        except Exception:
+            continue
+    return result
+
+
+def build_related(current_id: str, current_tags: list, existing_nodes: list, max_related: int = 5) -> list:
+    """计算当前节点的 related 关联（同 tag ≥2 → 同级）。
+
+    Args:
+        current_id: 当前节点 ID（用空字符串占位，build_frontmatter 时 zk_id 尚未最终确定）
+        current_tags: 当前节点的 tags 列表
+        existing_nodes: 已有节点列表 [{id, tags, catseq}]
+        max_related: 最多返回的关联数
+
+    Returns:
+        [{id, type, reason}] 关联列表
+    """
+    related = []
+    current_set = set(current_tags)
+    for n in existing_nodes:
+        if n.get("id") == current_id:
+            continue
+        shared = current_set & set(n.get("tags", []))
+        if len(shared) >= 2:
+            related.append({
+                "id": n["id"],
+                "type": "同级",
+                "reason": f"共享tag: {','.join(sorted(shared))}"
+            })
+        if len(related) >= max_related:
+            break
+    return related
+
+
+def format_related_yaml(related: list) -> str:
+    """把 related list 格式化为单行 JSON 字符串（用于 frontmatter）。"""
+    import json
+    return json.dumps(related, ensure_ascii=False)

@@ -33,15 +33,19 @@ def get_embeddings():
     return _embeddings, _metadata
 
 def handle_search(query, limit=10, domain=None):
+    from txtai_utils import rerank_with_bge
     embeddings, meta = get_embeddings()
-    results = embeddings.search(query, limit)
-    output = []
-    for r in results:
+    # 召回扩大到 limit*3 用于 rerank
+    recall_n = max(limit * 3, 30)
+    raw = embeddings.search(query, recall_n)
+    docs = []
+    for r in raw:
         doc_id = r["id"]
         m = meta.get(doc_id, {})
         if domain and m.get("domain") != domain:
             continue
-        output.append({
+        docs.append({
+            "id": doc_id,
             "score": round(r["score"], 4),
             "filepath": m.get("filepath", doc_id),
             "domain": m.get("domain", ""),
@@ -49,43 +53,56 @@ def handle_search(query, limit=10, domain=None):
             "text": r.get("text", "")[:300],
             "tags": m.get("tags", ""),
         })
-    return output
+    # 二阶段 rerank（reranker 不可用时降级为原序截断）
+    reranked = rerank_with_bge(query, docs, top_n=limit, threshold=0.3)
+    return reranked
 
 def handle_ask(query, domain=None):
-    from txtai_utils import search_with_gap
-    results = handle_search(query, limit=10, domain=domain)
-    gap = search_with_gap(results, query)
-    
+    from txtai_utils import search_with_gap, rerank_with_bge
+    # 召回 30 条用于 rerank，取 top 5 喂 LLM
+    candidates = handle_search(query, limit=30, domain=domain)
+    reranked = rerank_with_bge(query, candidates, top_n=5, threshold=0.3)
+    gap = search_with_gap(reranked, query, min_score=0.3)
+
     # DeepSeek synthesis
     api_key = config.DEEPSEEK_API_KEY
     if api_key:
+        if not reranked:
+            return {
+                "answer": "知识库无充分依据回答该问题。" + (gap or ""),
+                "sources": [],
+                "gap_analysis": gap or "召回结果经 rerank 阈值过滤后为空",
+                "total_results": 0,
+            }
         try:
-            import httpx
-            context = "\n\n".join(
-                f"[{r['domain']}] {r['filepath']}\n{r['text']}" for r in results[:5]
+            # 构造带来源标注的 context（合规要求）
+            context_block = "\n\n".join(
+                f"[来源{i+1}: {r.get('filepath', r.get('title', ''))}]\n{r.get('text', '')}"
+                for i, r in enumerate(reranked)
             )
-            prompt = f"""知识库内容：
-{context}
+            prompt = f"""基于以下知识库来源回答问题。每个指导性观点必须以 [来源: 文件名] 标注。
+若来源不足以回答，明确说明"知识库无充分依据"，不得编造。
+
+{context_block}
 
 用户问题：{query}
-"""
-            r = httpx.post(
-                "https://api.deepseek.com/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "deepseek-v4-flash",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.1,
-                },
-                timeout=30,
+
+回答（含来源标注）："""
+            # P2-4: 统一 LLM client（限流 + OTel trace）
+            from llm_client import call_llm
+            answer, _usage = call_llm(
+                messages=[{"role": "user", "content": prompt}],
+                trace_name="txtai_mcp.rag_synthesis",
             )
-            answer = r.json()["choices"][0]["message"]["content"]
+            # 后处理：检查来源标注合规性
+            if "[来源:" not in answer and "[来源" not in answer:
+                answer += "\n\n[自行推测观点] 本回答未能在知识库中找到充分来源标注，请核实。"
         except Exception as e:
             answer = f"[合成错误: {e}]"
     else:
         # No API key — return raw search
-        answer = "未配置 DEEPSEEK_API_KEY，返回原始搜索结果。\n\n" + json.dumps(results[:5], ensure_ascii=False, indent=2)
-    return {"answer": answer, "sources": results[:5], "gap_analysis": gap, "total_results": len(results)}
+        answer = "未配置 DEEPSEEK_API_KEY，返回原始搜索结果。\n\n" + json.dumps(reranked[:5], ensure_ascii=False, indent=2)
+    return {"answer": answer, "sources": reranked[:5], "gap_analysis": gap, "total_results": len(reranked)}
 
 def handle_stats():
     index_dir = config.TEXTAI_INDEX_DIR
@@ -210,5 +227,6 @@ if __name__ == "__main__":
         print(json.dumps(handle_search(q, 5), ensure_ascii=False, indent=2))
     else:
         mcp_main()
+
 
 

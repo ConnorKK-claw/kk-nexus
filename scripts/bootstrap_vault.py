@@ -115,10 +115,10 @@ def register_in_ontology(skill_dir: Path):
 def skill_name_to_domain(name: str) -> str:
     """将 skill 名称映射为 domain 描述。"""
     mapping = {
-        "equity-incentive": "股权激励方案设计与法规",
-        "a-share-research": "A 股市场研究",
-        "tax-compliance-expert": "税务合规",
-        "trading-analysis": "交易分析",
+        "my-domain": "股权激励方案设计与法规",
+        "asr-domain": "A 股市场研究",
+        "another-domain": "税务合规",
+        "ta2-domain": "交易分析",
         "hedge-fund-masters": "对冲基金策略",
         "deep-research": "深度研究",
         "6.skill": "量化交易+股权激励",

@@ -22,7 +22,7 @@ DOMAIN_PATTERNS: list[tuple] = [
                                    "合规审计", "纳税申报", "汇算清缴", "抵扣", "税前扣除"]),
 
     # 004 - 港股 IPO：必须同时命中港股组 AND 上市组
-    ("hk-ipo",   "港股 IPO",      [],
+    ("hk-domain",   "港股 IPO",      [],
         {"and_groups": [
             ["港股", "港交所", "香港联交所", "恒生", "香港交易所", "恒生指数"],
             ["上市", "IPO", "首次公开发行", "招股书", "聆讯", "红筹", "VIE架构"],
@@ -41,7 +41,7 @@ DOMAIN_PATTERNS: list[tuple] = [
 
     # 003 - 周报
     ("wr",       "周报",          ["周报", "周刊", "weekly report", "证券周报",
-                                    "市场周报", "行情回顾", "600895"]),
+                                    "市场周报", "行情回顾"]),
 
     # 006 - A股AI半导体产业链
     ("serenity", "产业链分析",     ["AI", "人工智能", "半导体", "芯片", "算力", "大模型",
@@ -117,7 +117,7 @@ def get_domain_label(domain: str) -> str:
         "ima": "IMA知识库",
         "ei": "股权激励",
         "tax": "税务合规",
-        "hk-ipo": "港股 IPO",
+        "hk-domain": "港股 IPO",
         "fa": "宏观经济分析",
         "trading": "交易策略",
         "serenity": "产业链分析",
@@ -145,5 +145,6 @@ if __name__ == "__main__":
         text = sys.stdin.read()
     domains = classify_text(text)
     print("\n".join(domains))
+
 
 

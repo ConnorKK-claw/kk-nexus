@@ -287,3 +287,28 @@ git checkout <commit-hash>
 
 *KK Nexus v1.0 — 架构固化于 2026-01-01*
 
+
+## 9. 新增强化模块（v1.1+）
+
+### 9.1 语义检索增强
+- **二阶段重排**：bge-reranker-base 交叉编码器，召回 top-N → rerank → top-5
+- **混合检索**：txtai hybrid 模式，BM25 关键词 + 向量双路融合
+- **父子分块**：按 `##` 标题切分，max_chunk=800, overlap=100
+
+### 9.2 文档解析
+- **docling 优先**：对 PDF/DOCX 的表格、版式、公式解析更优
+- **markitdown 降级**：docling 不可用时自动降级
+
+### 9.3 可观测性
+- **OTel JSONL**：零 Langfuse 依赖，trace 写入本地 JSONL 文件
+- **统一 LLM client**：收口所有 LLM 调用，统一限流 + OTel trace
+
+### 9.4 通知
+- **Webhook 派发**：HMAC-SHA256 签名，支持飞书等渠道
+- **事件点**：蒸馏完成/失败/步骤失败等 6 处触发点
+
+### 9.5 健康检查增强
+- **--json 参数**：结构化输出供 dashboard 消费
+- **退出码分离**：CLI 退出码反映工具执行状态，JSON payload 表达健康状态
+- **asyncio 并发**：多 vault 并发检查替代串行调用
+
