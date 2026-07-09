@@ -1,4 +1,4 @@
-# KK Nexus — 多员工知识系统框架
+# KK Nexus — 多员工知识系统框架 v1.1
 
 > 构建你自己的"AI 员工团队"——每个员工是一个专业化的 agent，配备独立知识库（vault），
 > 通过语义搜索统一索引，实现持续学习与自我进化。
@@ -195,7 +195,7 @@ graph LR
 
 ---
 
-*用 KK Nexus 搭建你自己的 AI 员工军团。*
+*用 KK Nexus 搭建你自己的 AI 员工军团。  |  v1.1 — 2026-07-09*
 
 
 
@@ -204,7 +204,7 @@ graph LR
 ### 语义检索增强
 - **二阶段重排** — bge-reranker-base 交叉编码器，召回 top-N → rerank → top-5
 - **混合检索** — BM25 关键词 + 向量双路融合（txtai hybrid）
-- **父子分块** — 按 \\##\\ 标题切分，max_chunk=800，overlap=100
+- **父子分块** — 按 ##\\ 标题切分，max_chunk=800，overlap=100
 
 ### 文档解析升级
 - **docling 优先** — PDF/DOCX 表格/版式/公式解析更优
@@ -218,4 +218,5 @@ graph LR
 - **--json 参数** — 结构化输出供 dashboard 消费
 - **退出码分离** — JSON 模式退出码始终 0，健康状态由 payload 表达
 - **asyncio 并发** — 多 vault 并发检查替代串行
+
 
